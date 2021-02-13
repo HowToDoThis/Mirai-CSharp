@@ -35,6 +35,7 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("nickname")]
         public override string Name { get => base.Name; set => base.Name = value; }
+
         /// <summary>
         /// 好友备注
         /// </summary>
@@ -42,16 +43,14 @@ namespace Mirai_CSharp.Models
         public string Remark { get; set; } = null!;
 
         [Obsolete("此类不应由用户主动创建实例。")]
-        public FriendInfo()
-        {
-
-        }
+        public FriendInfo() { }
 
         [Obsolete("此类不应由用户主动创建实例。")]
         public FriendInfo(long id, string name, string remark) : base(id, name)
         {
             Remark = remark;
         }
+
 #if NETSTANDARD2_0
         [JsonPropertyName("nickname")]
         string IFriendInfo.Name => base.Name;

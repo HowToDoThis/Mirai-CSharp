@@ -1,15 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+
 #if NET5_0
 using System.Net.Http.Json;
-using System.Text;
+#pragma warning disable CS8603 // Possible null reference return.
+#else
+using System.Net.Http.Headers;
 #endif
 
-#pragma warning disable CS1573 // 参数在 XML 注释中没有匹配的 param 标记(但其他参数有)
 namespace Mirai_CSharp.Extensions
 {
     /// <summary>
@@ -17,6 +22,131 @@ namespace Mirai_CSharp.Extensions
     /// </summary>
     public static partial class HttpClientExtensions
     {
+        #region PostByteArrayContent
+        /// <summary>
+        /// 异步发起一个 HttpPost 请求
+        /// </summary>
+        /// <inheritdoc cref="SendAsync(HttpClient, HttpMethod, Uri, HttpContent?, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, Uri uri, byte[] content, CancellationToken token = default)
+            => client.PostAsync(uri, new ByteArrayContent(content), token);
+
+        /// <inheritdoc cref="PostAsync(HttpClient, Uri, byte[], CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, string url, byte[] content, CancellationToken token = default)
+            => client.PostAsync(new Uri(url), content, token);
+        #endregion
+
+        #region PostEmptyContent
+        /// <summary>
+        /// 异步发起一个 HttpPost 请求
+        /// </summary>
+        /// <inheritdoc cref="PostAsync(HttpClient, Uri, byte[], CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, Uri uri, CancellationToken token = default)
+            => client.PostAsync(uri, null!, token);
+
+        /// <inheritdoc cref="PostAsync(HttpClient, string, byte[], CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, string url, CancellationToken token = default)
+            => client.PostAsync(new Uri(url), token);
+        #endregion
+
+        #region PostHttpContent
+        private static readonly string DefaultBoundary = $"MiraiCSharp/{Assembly.GetExecutingAssembly().GetName().Version}";
+
+        /// <summary>
+        /// 异步发起一个 HttpPost 请求
+        /// </summary>
+        /// <param name="contents">请求正文片段, 将以 multipart/form-data 的形式序列化</param>
+        /// <param name="client"></param>
+        /// <param name="uri"></param>
+        /// <param name="token"></param>
+        /// <inheritdoc cref="SendAsync(HttpClient, HttpMethod, Uri, HttpContent?, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, Uri uri, IEnumerable<HttpContent> contents, CancellationToken token = default)
+        {
+            MultipartFormDataContent multipart = new MultipartFormDataContent(DefaultBoundary);
+            foreach (HttpContent content in contents)
+                multipart.Add(content);
+
+            return client.PostAsync(uri, multipart, token);
+        }
+
+        /// <inheritdoc cref="PostAsync(HttpClient, Uri, IEnumerable{HttpContent}, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, string url, IEnumerable<HttpContent> contents, CancellationToken token = default)
+            => client.PostAsync(new Uri(url), contents, token);
+        #endregion
+
+        #region PostJsonContent
+#if !NET5_0
+        private static readonly MediaTypeHeaderValue DefaultJsonMediaType = new MediaTypeHeaderValue("application/json") { CharSet = "utf-8" };
+
+        /// <inheritdoc cref="PostAsJsonAsync{TValue}(HttpClient, Uri, TValue, JsonSerializerOptions?, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsJsonAsync<TValue>(this HttpClient client, Uri uri, TValue value, CancellationToken token = default)
+        {
+            return client.PostAsJsonAsync(uri, value, null, token);
+        }
+
+        /// <inheritdoc cref="PostAsJsonAsync{TValue}(HttpClient, string, TValue, JsonSerializerOptions?, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsJsonAsync<TValue>(this HttpClient client, string url, TValue value, CancellationToken token = default)
+        {
+            return client.PostAsJsonAsync(url, value, null, token);
+        }
+
+        /// <summary>
+        /// 异步发起一个 HttpPost 请求
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="uri"></param>
+        /// <param name="value">作为 Json 正文的对象</param>
+        /// <param name="options">序列化 <paramref name="value"/> 时要用到的 <see cref="JsonSerializerOptions"/></param>
+        /// <param name="token"></param>
+        /// <inheritdoc cref="PostAsync(HttpClient, Uri, byte[], CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsJsonAsync<TValue>(this HttpClient client, Uri uri, TValue value, JsonSerializerOptions? options, CancellationToken token = default)
+        {
+            ByteArrayContent content = new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(value, options));
+            content.Headers.ContentType = DefaultJsonMediaType;
+            return client.PostAsync(uri, content, token);
+        }
+
+        /// <param name="client"></param>
+        /// <param name="url">请求目标</param>
+        /// <param name="value">作为 Json 正文的对象</param>
+        /// <param name="options">序列化 <paramref name="value"/> 时要用到的 <see cref="JsonSerializerOptions"/></param>
+        /// <param name="token"></param>
+        /// <inheritdoc cref="PostAsJsonAsync{TValue}(HttpClient, Uri, TValue, JsonSerializerOptions?, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsJsonAsync<TValue>(this HttpClient client, string url, TValue value, JsonSerializerOptions? options, CancellationToken token = default)
+            => client.PostAsJsonAsync(new Uri(url), value, options, token);
+#endif
+        #endregion
+
+        #region PostStringContent
+        /// <summary>
+        /// 异步发起一个 HttpPost 请求
+        /// </summary>
+        /// <param name="encoding">将 <paramref name="content"/> 处理到 <see cref="StringContent"/> 时要用的的一个 <see cref="Encoding"/>。 默认为 <see cref="Encoding.UTF8"/></param>
+        /// <param name="client"></param>
+        /// <param name="token"></param>
+        /// <param name="content"></param>
+        /// <param name="uri"></param>
+        /// <inheritdoc cref="SendAsync(HttpClient, HttpMethod, Uri, HttpContent?, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, Uri uri, string content, Encoding? encoding, CancellationToken token = default)
+            => client.PostAsync(uri, new StringContent(content, encoding ?? Encoding.UTF8), token);
+
+        /// <param name="encoding">将 <paramref name="content"/> 处理到 <see cref="StringContent"/> 时要用的的一个 <see cref="Encoding"/>。 默认为 <see cref="Encoding.UTF8"/></param>
+        /// <param name="url">请求目标</param>
+        /// <param name="client"></param>
+        /// <param name="token"></param>
+        /// <param name="content"></param>
+        /// <inheritdoc cref="PostAsync(HttpClient, Uri, string, Encoding?, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, string url, string content, Encoding? encoding, CancellationToken token = default)
+            => client.PostAsync(new Uri(url), content, encoding, token);
+
+        /// <inheritdoc cref="PostAsync(HttpClient, Uri, string, Encoding?, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, Uri uri, string content, CancellationToken token = default)
+            => client.PostAsync(uri, content, null, token);
+
+        /// <inheritdoc cref="PostAsync(HttpClient, string, string, Encoding?, CancellationToken)"/>
+        public static Task<HttpResponseMessage> PostAsync(this HttpClient client, string url, string content, CancellationToken token = default)
+            => client.PostAsync(url, content, null, token);
+        #endregion
+
         private static Version DefaultHttpVersion { get; } = new Version(2, 0);
 
         /// <summary>
@@ -105,14 +235,9 @@ namespace Mirai_CSharp.Extensions
                 try
                 {
                     // Remove at most a single set of quotes.
-                    if (charset.Length > 2 && charset[0] == '\"' && charset[^1] == '\"')
-                    {
-                        encoding = Encoding.GetEncoding(charset[1..^1]);
-                    }
-                    else
-                    {
-                        encoding = Encoding.GetEncoding(charset);
-                    }
+                    encoding = charset.Length > 2 && charset[0] == '\"' && charset[^1] == '\"'
+                        ? Encoding.GetEncoding(charset[1..^1])
+                        : Encoding.GetEncoding(charset);
                 }
                 catch (ArgumentException e)
                 {
@@ -148,6 +273,9 @@ namespace Mirai_CSharp.Extensions
         /// 将服务器响应正文异步序列化为 <paramref name="returnType"/> 表示的一个实例
         /// </summary>
         /// <param name="returnType">用于转换和返回的 <see cref="Type"/></param>
+        /// <param name="responseTask"></param>
+        /// <param name="token"></param>
+        /// <param name="options"></param>
         /// <inheritdoc cref="GetObjectAsync{T}(Task{HttpResponseMessage}, JsonSerializerOptions?, CancellationToken)"/>
         public static async Task<object?> GetObjectAsync(this Task<HttpResponseMessage> responseTask, Type returnType, JsonSerializerOptions? options, CancellationToken token = default)
         {
@@ -174,9 +302,8 @@ namespace Mirai_CSharp.Extensions
             Stream stream = response.Content.ReadAsStream(token); // Content.ReadAsStreamAsync 是同步操作
             Encoding? encoding = GetEncoding(response.Content.Headers.ContentType?.CharSet);
             if (encoding != null && encoding != Encoding.UTF8)
-            {
                 stream = Encoding.CreateTranscodingStream(stream, encoding, Encoding.UTF8);
-            }
+
             using (stream)
             {
                 return await JsonDocument.ParseAsync(stream, options, token);
@@ -212,6 +339,9 @@ namespace Mirai_CSharp.Extensions
         /// 将服务器响应正文异步序列化为 <paramref name="returnType"/> 表示的一个实例
         /// </summary>
         /// <param name="returnType">用于转换和返回的 <see cref="Type"/></param>
+        /// <param name="token"></param>
+        /// <param name="options"></param>
+        /// <param name="responseTask"></param>
         /// <inheritdoc cref="GetObjectAsync{T}(Task{HttpResponseMessage}, JsonSerializerOptions?, CancellationToken)"/>
         public static async Task<object?> GetObjectAsync(this Task<HttpResponseMessage> responseTask, Type returnType, JsonSerializerOptions? options, CancellationToken token = default)
         {

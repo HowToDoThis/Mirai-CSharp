@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 
-#pragma warning disable CS0618 // 此警告是用户专用的
 namespace Mirai_CSharp.Models
 {
     /// <summary>
@@ -10,15 +9,14 @@ namespace Mirai_CSharp.Models
     public class AtAllMessage : Messages
     {
         public const string MsgType = "AtAll";
+
         /// <summary>
         /// 初始化 <see cref="AtAllMessage"/> 类的新实例
         /// </summary>
         public AtAllMessage() : base(MsgType)
-        {
+        { }
 
-        }
         /// <inheritdoc/>
-        public override string ToString()
-            => "[mirai:atall]";
+        public override string ToString() => "[mirai:atall]";
     }
 }

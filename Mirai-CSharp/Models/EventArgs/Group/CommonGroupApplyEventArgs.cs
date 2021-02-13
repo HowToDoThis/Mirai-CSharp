@@ -12,18 +12,13 @@ namespace Mirai_CSharp.Models
         string FromGroupName { get; }
     }
 
-    public class CommonGroupApplyEventArgs : NewApplyEventArgs, 
-                                       IGroupApplyEventArgs,
-                                       IBotInvitedJoinGroupEventArgs
+    public class CommonGroupApplyEventArgs : NewApplyEventArgs, IGroupApplyEventArgs, IBotInvitedJoinGroupEventArgs
     {
         [JsonPropertyName("groupName")]
         public string FromGroupName { get; set; } = null!;
 
         [Obsolete("此类不应由用户主动创建实例。")]
-        public CommonGroupApplyEventArgs()
-        {
-
-        }
+        public CommonGroupApplyEventArgs() { }
 
         [Obsolete("此类不应由用户主动创建实例。")]
         public CommonGroupApplyEventArgs(string fromGroupName, long eventId, long fromGroup, long fromQQ, string nickName) : base(eventId, fromGroup, fromQQ, nickName)

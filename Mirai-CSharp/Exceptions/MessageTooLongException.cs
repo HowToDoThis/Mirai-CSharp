@@ -1,7 +1,7 @@
 ﻿using Mirai_CSharp.Models;
+
 using System;
 
-#pragma warning disable CA1819 // Properties should not return arrays
 namespace Mirai_CSharp.Exceptions
 {
     /// <summary>

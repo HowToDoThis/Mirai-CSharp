@@ -13,6 +13,7 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("name")]
         string Name { get; }
+
         /// <summary>
         /// 专属头衔
         /// </summary>
@@ -27,17 +28,16 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("name")]
         public string Name { get; set; } = null!;
+
         /// <summary>
         /// 专属头衔
         /// </summary>
         [JsonPropertyName("specialTitle")]
         public string SpecialTitle { get; set; } = null!;
 
-        [Obsolete("此类不应由用户主动创建实例。")]
-        public GroupMemberCardInfo()
-        {
 
-        }
+        [Obsolete("此类不应由用户主动创建实例。")]
+        public GroupMemberCardInfo() { }
 
         [Obsolete("此类不应由用户主动创建实例。")]
         public GroupMemberCardInfo(string name, string specialTitle)

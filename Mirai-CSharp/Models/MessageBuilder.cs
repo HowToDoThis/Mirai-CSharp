@@ -17,8 +17,7 @@ namespace Mirai_CSharp.Models
 
         public virtual int Count => _list.Count;
 
-        public virtual IMessageBase[] Build()
-            => _list.ToArray();
+        public virtual IMessageBase[] Build() => _list.ToArray();
 
         public IMessageBuilder Add(IMessageBase message)
         {

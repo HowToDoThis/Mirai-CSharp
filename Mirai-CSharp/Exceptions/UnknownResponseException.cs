@@ -25,7 +25,6 @@ namespace Mirai_CSharp.Exceptions
 
         public UnknownResponseException(string? response, Exception? innerException) : this(response, DefaultMessage, innerException) { }
 
-        public UnknownResponseException(string? response, string? message, Exception? innerException) : base(message ?? DefaultMessage, innerException)
-            => Response = response;
+        public UnknownResponseException(string? response, string? message, Exception? innerException) : base(message ?? DefaultMessage, innerException) => Response = response;
     }
 }

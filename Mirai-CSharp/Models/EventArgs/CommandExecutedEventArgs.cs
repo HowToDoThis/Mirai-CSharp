@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-#pragma warning disable CA1819 // Properties should not return arrays
 namespace Mirai_CSharp.Models
 {
     /// <summary>
@@ -14,11 +13,13 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("name")]
         string Name { get; }
+
         /// <summary>
         /// 指令参数
         /// </summary>
         [JsonPropertyName("args")]
         string[] Args { get; }
+
         /// <summary>
         /// 指令发送者QQ号
         /// </summary>
@@ -31,6 +32,7 @@ namespace Mirai_CSharp.Models
         /// </remarks>
         [JsonPropertyName("sender")]
         long Sender { get; }
+
         /// <summary>
         /// 指令发送者所在的群号
         /// </summary>

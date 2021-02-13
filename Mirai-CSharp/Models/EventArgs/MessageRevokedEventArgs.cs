@@ -1,4 +1,5 @@
 ﻿using Mirai_CSharp.Utility.JsonConverters;
+
 using System;
 using System.Text.Json.Serialization;
 
@@ -14,11 +15,13 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("authorId")]
         long SenderId { get; }
+
         /// <summary>
         /// 原消息发送时间
         /// </summary>
         [JsonPropertyName("messageId")]
         int MessageId { get; }
+
         /// <summary>
         /// 原消息发送时间
         /// </summary>
@@ -34,11 +37,13 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("authorId")]
         public long SenderId { get; set; }
+
         /// <summary>
         /// 原消息发送时间
         /// </summary>
         [JsonPropertyName("messageId")]
         public int MessageId { get; set; }
+
         /// <summary>
         /// 原消息发送时间
         /// </summary>
@@ -55,5 +60,4 @@ namespace Mirai_CSharp.Models
             SentTime = sentTime;
         }
     }
-
 }

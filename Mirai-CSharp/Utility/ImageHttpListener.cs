@@ -3,11 +3,12 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 
-#pragma warning disable CA1031 // Do not catch general exception types
-#pragma warning disable CA1810 // Initialize reference type static fields inline
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+
 namespace Mirai_CSharp.Utility
 {
-    internal static class ImageHttpListener // 对于 mirai-api-http v1.7.0及以下版本无法发图的临时解决方案
+    // 对于 mirai-api-http v1.7.0及以下版本无法发图的临时解决方案
+    internal static class ImageHttpListener
     {
         internal static readonly HttpListener Listener = new HttpListener();
 
@@ -29,10 +30,10 @@ namespace Mirai_CSharp.Utility
                 }
                 catch (Exception)
                 {
+                    // 你tm整台机器都没有一个端口可用那可真是见鬼了
                     if (port == 65534)
-                    {
-                        throw; // 你tm整台机器都没有一个端口可用那可真是见鬼了
-                    }
+                        throw;
+
                     Listener.Prefixes.Clear();
                 }
             }
@@ -41,9 +42,8 @@ namespace Mirai_CSharp.Utility
         public static void RegisterImage(Guid guid, Stream imgStream)
         {
             if (Port == 0)
-            {
                 throw new NotSupportedException();
-            }
+
             Cache.TryAdd(guid, imgStream);
         }
 
@@ -70,6 +70,7 @@ namespace Mirai_CSharp.Utility
                     {
                         ctx.Response.StatusCode = 404;
                     }
+
                     ctx.Response.Close();
                 }
                 catch (Exception)

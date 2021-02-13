@@ -1,6 +1,5 @@
 ﻿using System.Text.Json.Serialization;
 
-#pragma warning disable CS0618 // 此警告是用户专用的
 namespace Mirai_CSharp.Models
 {
     /// <summary>
@@ -20,16 +19,19 @@ namespace Mirai_CSharp.Models
         /// </remarks>
         [JsonPropertyName("imageId")]
         public string? ImageId { get; set; }
+
         /// <summary>
         /// 图片的URL, 发送时可作网络图片的链接；接收时为腾讯图片服务器的链接, 可用于图片下载
         /// </summary>
         [JsonPropertyName("url")]
         public string? Url { get; set; }
+
         /// <summary>
         /// 图片的路径, 发送本地图片, 相对路径于 plugins/MiraiAPIHTTP/images
         /// </summary>
         [JsonPropertyName("path")]
         public string? Path { get; set; }
+
         /// <summary>
         /// 请子类重写Summary
         /// </summary>

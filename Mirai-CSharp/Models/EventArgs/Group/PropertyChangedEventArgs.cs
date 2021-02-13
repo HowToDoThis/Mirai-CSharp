@@ -1,4 +1,5 @@
 ﻿using Mirai_CSharp.Utility.JsonConverters;
+
 using System;
 using System.Text.Json.Serialization;
 
@@ -15,6 +16,7 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("origin")]
         TProperty Origin { get; }
+
         /// <summary>
         /// 修改后
         /// </summary>
@@ -29,6 +31,7 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("origin")]
         public virtual TProperty Origin { get; set; } = default!;
+
         /// <summary>
         /// 修改后
         /// </summary>
@@ -86,15 +89,9 @@ namespace Mirai_CSharp.Models
         [JsonPropertyName("current")]
         public override TProperty Current { get => base.Current; set => base.Current = value; }
 
-        protected EnumPropertyChangedEventArgs()
-        {
+        protected EnumPropertyChangedEventArgs() { }
 
-        }
-
-        protected EnumPropertyChangedEventArgs(TProperty origin, TProperty current) : base(origin, current)
-        {
-
-        }
+        protected EnumPropertyChangedEventArgs(TProperty origin, TProperty current) : base(origin, current) { }
     }
 
     /// <summary>
@@ -102,9 +99,7 @@ namespace Mirai_CSharp.Models
     /// </summary>
     /// <typeparam name="TProperty">属性类型</typeparam>
     public interface IBotGroupPropertyChangedEventArgs<TProperty> : IPropertyChangedEventArgs<TProperty>, IGroupEventArgs
-    {
-        
-    }
+    { }
 
     public abstract class BotGroupPropertyChangedEventArgs<TProperty> : PropertyChangedEventArgs<TProperty>, IBotGroupPropertyChangedEventArgs<TProperty>
     {
@@ -131,9 +126,7 @@ namespace Mirai_CSharp.Models
     /// </remarks>
     /// <typeparam name="TProperty">属性类型, 必须为枚举类型</typeparam>
     public interface IBotGroupEnumPropertyChangedEventArgs<TProperty> : IEnumPropertyChangedEventArgs<TProperty>, IGroupEventArgs where TProperty : Enum
-    {
-
-    }
+    { }
 
     public class BotGroupEnumPropertyChangedEventArgs<TProperty> : BotGroupPropertyChangedEventArgs<TProperty>, IBotGroupEnumPropertyChangedEventArgs<TProperty> where TProperty : Enum
     {
@@ -146,16 +139,11 @@ namespace Mirai_CSharp.Models
         public override TProperty Current { get => base.Current; set => base.Current = value; }
 
         [Obsolete("此类不应由用户主动创建实例。")]
-        public BotGroupEnumPropertyChangedEventArgs()
-        {
-
-        }
+        public BotGroupEnumPropertyChangedEventArgs() { }
 
         [Obsolete("此类不应由用户主动创建实例。")]
-        public BotGroupEnumPropertyChangedEventArgs(IGroupInfo group, TProperty origin, TProperty current) : base(group, origin, current)
-        {
+        public BotGroupEnumPropertyChangedEventArgs(IGroupInfo group, TProperty origin, TProperty current) : base(group, origin, current) { }
 
-        }
 #if NETSTANDARD2_0
         [JsonConverter(typeof(JsonStringEnumConverter))]
         [JsonPropertyName("origin")]
@@ -172,9 +160,7 @@ namespace Mirai_CSharp.Models
     /// </summary>
     /// <typeparam name="TProperty">属性类型</typeparam>
     public interface IGroupPropertyChangedEventArgs<TProperty> : IPropertyChangedEventArgs<TProperty>, IGroupOperatingEventArgs
-    {
-
-    }
+    { }
 
     public /*abstract*/ class GroupPropertyChangedEventArgs<TProperty> : BotGroupPropertyChangedEventArgs<TProperty>, IGroupPropertyChangedEventArgs<TProperty>
     {
@@ -185,11 +171,9 @@ namespace Mirai_CSharp.Models
         [JsonPropertyName("operator")]
         public IGroupMemberInfo Operator { get; set; } = null!;
 
-        /*protected*/
         [Obsolete("此类不应由用户主动创建实例。")]
         public GroupPropertyChangedEventArgs() { }
 
-        /*protected*/
         [Obsolete("此类不应由用户主动创建实例。")]
         public GroupPropertyChangedEventArgs(IGroupInfo group, IGroupMemberInfo @operator, TProperty origin, TProperty current) : base(group, origin, current)
         {
@@ -197,99 +181,12 @@ namespace Mirai_CSharp.Models
         }
     }
 
-    //public class GroupNameChangedEventArgs : GroupPropertyChangedEventArgs<string>
-    //{
-    //    public GroupNameChangedEventArgs() { }
-
-    //    public GroupNameChangedEventArgs(IGroupInfo group, IGroupMemberInfo @operator, string origin, string current) : base(group, @operator, origin, current)
-    //    {
-
-    //    }
-    //}
-
-    //public class GroupEntranceAnnouncementChangedEventArgs : GroupPropertyChangedEventArgs<string>
-    //{
-    //    public GroupEntranceAnnouncementChangedEventArgs() { }
-
-    //    public GroupEntranceAnnouncementChangedEventArgs(IGroupInfo group, IGroupMemberInfo @operator, string origin, string current) : base(group, @operator, origin, current)
-    //    {
-
-    //    }
-    //}
-
-    //public class GroupMemberCardChangedEventArgs : GroupPropertyChangedEventArgs<string>
-    //{
-    //    public GroupMemberCardChangedEventArgs() { }
-
-    //    public GroupMemberCardChangedEventArgs(IGroupInfo group, IGroupMemberInfo @operator, string origin, string current) : base(group, @operator, origin, current)
-    //    {
-
-    //    }
-    //}
-
-    //public class GroupSpecialTitleChangedEventArgs : GroupPropertyChangedEventArgs<string>
-    //{
-    //    public GroupSpecialTitleChangedEventArgs() { }
-
-    //    public GroupSpecialTitleChangedEventArgs(IGroupInfo group, IGroupMemberInfo @operator, string origin, string current) : base(group, @operator, origin, current)
-    //    {
-
-    //    }
-    //}
-
-    //public class GroupMuteAllChangedEventArgs : GroupPropertyChangedEventArgs<bool>
-    //{
-    //    public GroupMuteAllChangedEventArgs() { }
-
-    //    public GroupMuteAllChangedEventArgs(IGroupInfo group, IGroupMemberInfo @operator, bool origin, bool current) : base(group, @operator, origin, current)
-    //    {
-
-    //    }
-    //}
-
-    //public class GroupAnonymousChatChangedEventArgs : GroupPropertyChangedEventArgs<bool>
-    //{
-    //    public GroupAnonymousChatChangedEventArgs() { }
-
-    //    public GroupAnonymousChatChangedEventArgs(IGroupInfo group, IGroupMemberInfo @operator, bool origin, bool current) : base(group, @operator, origin, current)
-    //    {
-
-    //    }
-    //}
-
-    //public class GroupConfessTalkChangedEventArgs : GroupPropertyChangedEventArgs<bool>
-    //{
-    //    public GroupConfessTalkChangedEventArgs() { }
-
-    //    public GroupConfessTalkChangedEventArgs(IGroupInfo group, IGroupMemberInfo @operator, bool origin, bool current) : base(group, @operator, origin, current)
-    //    {
-
-    //    }
-    //}
-
-    //public class GroupMemberInviteChangedEventArgs : GroupPropertyChangedEventArgs<bool>
-    //{
-    //    public GroupMemberInviteChangedEventArgs() { }
-
-    //    public GroupMemberInviteChangedEventArgs(IGroupInfo group, IGroupMemberInfo @operator, bool origin, bool current) : base(group, @operator, origin, current)
-    //    {
-
-    //    }
-    //}
-
-    //public interface IGroupEnumPropertyChangedEventArgs<TProperty> : IBotGroupEnumPropertyChangedEventArgs<TProperty>, IGroupOperatingEventArgs where TProperty : Enum
-    //{
-
-    //}
-
     /// <summary>
     /// 提供群成员属性改变的信息接口。继承自 <see cref="IPropertyChangedEventArgs{TProperty}"/> 和 <see cref="IMemberEventArgs"/>
     /// </summary>
     /// <typeparam name="TProperty">属性类型</typeparam>
     public interface IGroupMemberPropertyChangedEventArgs<TProperty> : IPropertyChangedEventArgs<TProperty>, IMemberEventArgs
-    {
-
-    }
+    { }
 
     public /*abstract*/ class GroupMemberPropertyChangedEventArgs<TProperty> : PropertyChangedEventArgs<TProperty>, IGroupMemberPropertyChangedEventArgs<TProperty>
     {
@@ -300,30 +197,15 @@ namespace Mirai_CSharp.Models
         [JsonPropertyName("member")]
         public IGroupMemberInfo Member { get; set; } = null!;
 
-        /*protected*/
         [Obsolete("此类不应由用户主动创建实例。")]
         public GroupMemberPropertyChangedEventArgs() { }
 
-        /*protected*/
         [Obsolete("此类不应由用户主动创建实例。")]
         public GroupMemberPropertyChangedEventArgs(IGroupMemberInfo member, TProperty origin, TProperty current) : base(origin, current)
         {
             Member = member;
         }
     }
-
-    //public class GroupMemberSpecialTitleChangedEventArgs : GroupMemberPropertyChangedEventArgs<string>
-    //{
-    //    public GroupMemberSpecialTitleChangedEventArgs()
-    //    {
-
-    //    }
-
-    //    public GroupMemberSpecialTitleChangedEventArgs(IGroupMemberInfo member, string origin, string current) : base(member, origin, current)
-    //    {
-
-    //    }
-    //}
 
     /// <summary>
     /// 提供群成员属性改变的信息接口。继承自 <see cref="IEnumPropertyChangedEventArgs{TProperty}"/> 和 <see cref="IMemberEventArgs"/>
@@ -333,9 +215,7 @@ namespace Mirai_CSharp.Models
     /// </remarks>
     /// <typeparam name="TProperty">属性类型, 必须为枚举类型</typeparam>
     public interface IGroupMemberEnumPropertyChangedEventArgs<TProperty> : IEnumPropertyChangedEventArgs<TProperty>, IMemberEventArgs where TProperty : Enum
-    {
-        
-    }
+    { }
 
     public class GroupMemberEnumPropertyChangedEventArgs<TProperty> : GroupMemberPropertyChangedEventArgs<TProperty>, IGroupMemberEnumPropertyChangedEventArgs<TProperty> where TProperty : Enum
     {
@@ -351,10 +231,8 @@ namespace Mirai_CSharp.Models
         public GroupMemberEnumPropertyChangedEventArgs() { }
 
         [Obsolete("此类不应由用户主动创建实例。")]
-        public GroupMemberEnumPropertyChangedEventArgs(IGroupMemberInfo member, TProperty origin, TProperty current) : base(member, origin, current)
-        {
+        public GroupMemberEnumPropertyChangedEventArgs(IGroupMemberInfo member, TProperty origin, TProperty current) : base(member, origin, current) { }
 
-        }
 #if NETSTANDARD2_0
         [JsonConverter(typeof(JsonStringEnumConverter))]
         [JsonPropertyName("origin")]

@@ -1,10 +1,26 @@
 ﻿using Mirai_CSharp.Models;
+
 using System;
+using System.Linq;
 
 namespace Mirai_CSharp.Extensions
 {
-    public static class ModelBuilderExtensions
+    public static class MessageBuilderExtension
     {
+        // 其他的我还没想到, 以后再写
+        #region Message Chain Extension
+        public static string GetPlain(this IMessageBase[] chain)
+        {
+            return string.Join(null, chain.GetPlains());
+        }
+
+        public static string[] GetPlains(this IMessageBase[] chain)
+        {
+            return chain.OfType<PlainMessage>().Select(p => p.Message).ToArray();
+        }
+        #endregion
+
+        #region Model Extension
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="PlainMessage"/>
         /// </summary>
@@ -18,6 +34,7 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new PlainMessage(text));
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="ImageMessage"/>
         /// </summary>
@@ -38,6 +55,7 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new ImageMessage(imageId, url, path));
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="FlashImageMessage"/>
         /// </summary>
@@ -58,6 +76,7 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new FlashImageMessage(imageId, url, path));
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="AtMessage"/>
         /// </summary>
@@ -71,6 +90,7 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new AtMessage(target));
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="AtAllMessage"/>
         /// </summary>
@@ -80,6 +100,7 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new AtAllMessage());
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="FaceMessage"/>
         /// </summary>
@@ -87,13 +108,14 @@ namespace Mirai_CSharp.Extensions
         /// <param name="id">QQ表情编号, 优先高于 <paramref name="name"/></param>
         /// <param name="name">QQ表情拼音, 可选</param>
         /// <remarks>
-        /// 不会检查传入的参数是否有效。 <paramref name="id"/> 的取值参见 <a href="https://github.com/mamoe/mirai/blob/master/mirai-core/src/commonMain/kotlin/net.mamoe.mirai/message/data/Face.kt#L41"/>
+        /// 不会检查传入的参数是否有效。 <paramref name="id"/> 的取值参见 <a href="https://github.com/mamoe/mirai/blob/2.3-release/mirai-core-api/src/commonMain/kotlin/message/data/Face.kt#L51"/>
         /// </remarks>
         /// <returns>传入的 <see cref="IMessageBuilder"/>, 可继续用于链式调用</returns>
         public static IMessageBuilder AddFaceMessage(this IMessageBuilder builder, int id, string? name = null)
         {
             return builder.Add(new FaceMessage(id, name));
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="XmlMessage"/>
         /// </summary>
@@ -107,6 +129,7 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new XmlMessage(xml));
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="JsonMessage"/>
         /// </summary>
@@ -120,6 +143,7 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new JsonMessage(json));
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="AppMessage"/>
         /// </summary>
@@ -133,6 +157,7 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new AppMessage(content));
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="PokeMessage"/>
         /// </summary>
@@ -146,6 +171,7 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new PokeMessage(name));
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="VoiceMessage"/>
         /// </summary>
@@ -160,6 +186,7 @@ namespace Mirai_CSharp.Extensions
         {
             throw new NotImplementedException();
         }
+
         /// <summary>
         /// 为给定的 <see cref="IMessageBuilder"/> 添加一条 <see cref="VoiceMessage"/>
         /// </summary>
@@ -175,5 +202,6 @@ namespace Mirai_CSharp.Extensions
         {
             return builder.Add(new VoiceMessage(voiceId, url, path));
         }
+        #endregion
     }
 }

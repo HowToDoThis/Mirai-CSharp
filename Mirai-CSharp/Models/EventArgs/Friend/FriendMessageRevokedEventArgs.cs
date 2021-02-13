@@ -32,5 +32,4 @@ namespace Mirai_CSharp.Models
             Operator = @operator;
         }
     }
-
 }

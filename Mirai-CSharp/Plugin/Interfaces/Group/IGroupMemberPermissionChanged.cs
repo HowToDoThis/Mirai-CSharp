@@ -1,4 +1,5 @@
 ﻿using Mirai_CSharp.Models;
+
 using System.Threading.Tasks;
 
 namespace Mirai_CSharp.Plugin.Interfaces

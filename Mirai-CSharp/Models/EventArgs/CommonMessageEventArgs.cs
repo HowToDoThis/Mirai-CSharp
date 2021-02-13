@@ -1,7 +1,7 @@
 ﻿using Mirai_CSharp.Utility.JsonConverters;
+
 using System.Text.Json.Serialization;
 
-#pragma warning disable CA1819 // Properties should not return arrays
 namespace Mirai_CSharp.Models
 {
     /// <summary>

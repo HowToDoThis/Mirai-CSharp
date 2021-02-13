@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.Json;
 
 namespace Mirai_CSharp.Models
 {
@@ -19,10 +18,7 @@ namespace Mirai_CSharp.Models
         public Exception Exception { get; set; } = null!;
 
         [Obsolete("此类不应由用户主动创建实例。")]
-        public DisconnectedEventArgs()
-        {
-
-        }
+        public DisconnectedEventArgs() { }
 
         [Obsolete("此类不应由用户主动创建实例。")]
         public DisconnectedEventArgs(Exception exception)

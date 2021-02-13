@@ -17,10 +17,7 @@ namespace Mirai_CSharp.Models
     {
         public JsonElement Message { get; set; }
 
-        public UnknownMessageEventArgs()
-        {
-
-        }
+        public UnknownMessageEventArgs() { }
 
         public UnknownMessageEventArgs(JsonElement message)
         {

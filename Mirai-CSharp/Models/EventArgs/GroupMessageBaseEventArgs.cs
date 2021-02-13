@@ -1,4 +1,5 @@
 ﻿using Mirai_CSharp.Utility.JsonConverters;
+
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -27,7 +28,6 @@ namespace Mirai_CSharp.Models
             Sender = sender;
         }
 
-        public override string ToString()
-            => $"[{Sender.Group.Name}({Sender.Group.Id})] {Sender.Name}({Sender.Id}) -> {string.Join("", (IEnumerable<Messages>)Chain)}";
+        public override string ToString() => $"[{Sender.Group.Name}({Sender.Group.Id})] {Sender.Name}({Sender.Id}) -> {string.Join("", (IEnumerable<Messages>)Chain)}";
     }
 }

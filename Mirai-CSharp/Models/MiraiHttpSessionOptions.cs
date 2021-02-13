@@ -6,14 +6,17 @@
         /// 目标主机
         /// </summary>
         public string Host { get; }
+
         /// <summary>
         /// 目标端口
         /// </summary>
         public int Port { get; }
+
         /// <summary>
         /// 配置mirai-api-http时的AuthKey
         /// </summary>
         public string AuthKey { get; }
+
         /// <summary>
         /// 内部使用。
         /// </summary>

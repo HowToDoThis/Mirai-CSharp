@@ -13,6 +13,7 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("id")]
         long Id { get; }
+
         /// <summary>
         /// 昵称/群名
         /// </summary>
@@ -27,16 +28,14 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("id")]
         public virtual long Id { get; set; }
+
         /// <summary>
         /// 昵称/群名
         /// </summary>
         [JsonPropertyName("name")]
         public virtual string Name { get; set; } = null!;
 
-        protected BaseInfo()
-        {
-
-        }
+        protected BaseInfo() { }
 
         protected BaseInfo(long id, string name)
         {
@@ -44,7 +43,7 @@ namespace Mirai_CSharp.Models
             Name = name;
         }
     }
-    
+
     /// <summary>
     /// 提供群内权限和基本信息的接口。继承自 <see cref="IBaseInfo"/>
     /// </summary>

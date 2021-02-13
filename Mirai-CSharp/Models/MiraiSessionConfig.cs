@@ -9,6 +9,7 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("cacheSize")]
         int? CacheSize { get; }
+
         /// <summary>
         /// 是否开启Websocket
         /// </summary>
@@ -23,16 +24,14 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("cacheSize")]
         public int? CacheSize { get; set; }
+
         /// <summary>
         /// 是否启用WebSocket
         /// </summary>
         [JsonPropertyName("enableWebsocket")]
         public bool? EnableWebSocket { get; set; }
 
-        public MiraiSessionConfig()
-        {
-
-        }
+        public MiraiSessionConfig() { }
 
         public MiraiSessionConfig(int? cacheSize, bool? enableWebSocket)
         {

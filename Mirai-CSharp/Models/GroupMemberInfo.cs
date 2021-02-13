@@ -1,4 +1,5 @@
 ﻿using Mirai_CSharp.Utility.JsonConverters;
+
 using System;
 using System.Text.Json.Serialization;
 
@@ -38,6 +39,7 @@ namespace Mirai_CSharp.Models
         /// </summary>
         [JsonPropertyName("memberName")]
         public override string Name { get => base.Name; set => base.Name = value; }
+
         /// <summary>
         /// 机器人所在群的信息
         /// </summary>
@@ -53,6 +55,7 @@ namespace Mirai_CSharp.Models
         {
             Group = args;
         }
+
 #if NETSTANDARD2_0
         [JsonPropertyName("memberName")]
         string IBaseInfo.Name => base.Name;

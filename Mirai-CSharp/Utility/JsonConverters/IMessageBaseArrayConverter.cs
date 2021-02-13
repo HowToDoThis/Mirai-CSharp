@@ -1,10 +1,10 @@
 ﻿using Mirai_CSharp.Models;
+
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-#pragma warning disable CS0618 // 类型或成员已过时
 namespace Mirai_CSharp.Utility.JsonConverters
 {
     public class IMessageBaseArrayConverter : JsonConverter<IMessageBase[]>
@@ -34,6 +34,7 @@ namespace Mirai_CSharp.Utility.JsonConverters
                     _ => throw new NotImplementedException("未知的消息类型:" + data.GetProperty("type").GetString())
                 });
             }
+
             return result.ToArray();
         }
 
@@ -41,9 +42,7 @@ namespace Mirai_CSharp.Utility.JsonConverters
         {
             writer.WriteStartArray();
             foreach (IMessageBase message in value)
-            {
                 JsonSerializer.Serialize(writer, message, message.GetType(), options);
-            }
             writer.WriteEndArray();
         }
     }

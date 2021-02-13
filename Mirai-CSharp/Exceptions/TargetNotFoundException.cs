@@ -10,8 +10,10 @@ namespace Mirai_CSharp.Exceptions
         private const string DefaultMessage = "给定的目标QQ/群号不存在。";
 
         internal string? _message; // 允许更改异常消息, 并且避免重新抛出异常时丢失StackTrace
+
         /// <inheritdoc/>
         public override string Message => _message ?? base.Message;
+
         /// <summary>
         /// 目标QQ/群号
         /// </summary>
