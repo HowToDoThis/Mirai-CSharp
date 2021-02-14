@@ -9,8 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -24,8 +22,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+using SkiaSharp;
 
 namespace Mirai_CSharp
 {
@@ -133,7 +130,7 @@ namespace Mirai_CSharp
         {
             InternalSessionInfo session = SafeGetSession();
             return session.Client.GetAsync($"{session.Options.BaseUrl}/friendList?sessionKey={session.SessionKey}", session.Token)
-                .AsNoSuccCodeApiRespAsync<IFriendInfo[], FriendInfo[]>(session.Token);
+                .AsApiRespAsync<IFriendInfo[], FriendInfo[]>(session.Token);
         }
 
         /// <summary>
@@ -144,7 +141,7 @@ namespace Mirai_CSharp
         {
             InternalSessionInfo session = SafeGetSession();
             return session.Client.GetAsync($"{session.Options.BaseUrl}/groupList?sessionKey={session.SessionKey}", session.Token)
-                .AsNoSuccCodeApiRespAsync<IGroupInfo[], GroupInfo[]>(session.Token);
+                .AsApiRespAsync<IGroupInfo[], GroupInfo[]>(session.Token);
         }
 
         /// <summary>
@@ -157,7 +154,7 @@ namespace Mirai_CSharp
         {
             InternalSessionInfo session = SafeGetSession();
             return session.Client.GetAsync($"{session.Options.BaseUrl}/memberList?sessionKey={session.SessionKey}&target={groupNumber}", session.Token)
-                .AsNoSuccCodeApiRespAsync<IGroupMemberInfo[], GroupMemberInfo[]>(session.Token);
+                .AsApiRespAsync<IGroupMemberInfo[], GroupMemberInfo[]>(session.Token);
         }
 
         /// <summary>
@@ -458,7 +455,7 @@ namespace Mirai_CSharp
         {
             CheckDisposed();
             InternalSessionInfo session = new InternalSessionInfo();
-            if (Interlocked.CompareExchange(ref SessionInfo, session, null!) == null)
+            if (Interlocked.CompareExchange(ref SessionInfo, session, null) == null)
             {
                 try
                 {
@@ -485,7 +482,7 @@ namespace Mirai_CSharp
                 }
                 catch
                 {
-                    Interlocked.CompareExchange(ref SessionInfo, null, session);
+                    Interlocked.CompareExchange(ref SessionInfo, (InternalSessionInfo?)null, session);
                     _ = InternalReleaseAsync(session);
                     throw;
                 }
@@ -525,19 +522,18 @@ namespace Mirai_CSharp
         {
             using JsonDocument j = await client.GetAsync($"{options.BaseUrl}/about").GetJsonAsync();
             JsonElement root = j.RootElement;
-            int code = root.GetProperty("code").GetInt32();
-            if (code == 0)
+            if (root.CheckApiRespCode(out int? code))
             {
                 string version = root.GetProperty("data").GetProperty("version").GetString()!;
                 int vIndex = version.IndexOf('v');
 #if NETSTANDARD2_0
-                return Version.Parse(vIndex > 0 ? version.Substring(vIndex) : version); // v1.0.0 ~ v1.7.2, skip 'v'
+                return Version.Parse(vIndex != -1 ? version.Substring(vIndex) : version); // v1.0.0 ~ v1.7.4, skip 'v'
 #else
-                return Version.Parse(vIndex > 0 ? version[vIndex..] : version); // v1.0.0 ~ v1.7.2, skip 'v'
+                return Version.Parse(vIndex != -1 ? version[(vIndex + 1)..] : version); // v1.0.0 ~ v1.7.4, skip 'v'
 #endif
             }
 
-            throw GetCommonException(code, in root);
+            throw GetCommonException(code!.Value, in root);
         }
 
         /// <inheritdoc cref="GetVersionAsync(HttpClient, MiraiHttpSessionOptions)"/>
@@ -579,7 +575,8 @@ namespace Mirai_CSharp
 
             try
             {
-                await session.Client.PostAsJsonAsync($"{session.Options.BaseUrl}/release", payload, token).AsApiRespAsync(token);
+                if (session.Options != null)
+                    await session.Client.PostAsJsonAsync($"{session.Options.BaseUrl}/release", payload, token).AsApiRespAsync(token);
             }
             finally
             {
@@ -594,7 +591,7 @@ namespace Mirai_CSharp
         private static Task<IMiraiSessionConfig> GetConfigAsync(InternalSessionInfo session)
         {
             return session.Client.GetAsync($"{session.Options.BaseUrl}/config?sessionKey={WebUtility.UrlEncode(session.SessionKey)}", session.Token)
-                .AsNoSuccCodeApiRespAsync<IMiraiSessionConfig, MiraiSessionConfig>(session.Token);
+                .AsApiRespAsync<IMiraiSessionConfig, MiraiSessionConfig>(session.Token);
         }
 
         private static Task SetConfigAsync(InternalSessionInfo session, IMiraiSessionConfig config)
@@ -659,13 +656,13 @@ namespace Mirai_CSharp
             };
 
             string json = await client.PostAsJsonAsync($"{options.BaseUrl}/command/register", payload).GetStringAsync();
+
             try
             {
                 using JsonDocument j = JsonDocument.Parse(json);
                 JsonElement root = j.RootElement;
-                int code = root.GetProperty("code").GetInt32();
-                if (code != 0)
-                    throw GetCommonException(code, in root);
+                if (root.CheckApiRespCode(out int? code))
+                    throw GetCommonException(code!.Value, in root);
             }
             catch (JsonException) // 返回值非json就是执行失败, 把响应正文重新抛出
             {
@@ -712,9 +709,8 @@ namespace Mirai_CSharp
             {
                 using JsonDocument j = JsonDocument.Parse(json);
                 JsonElement root = j.RootElement;
-                int code = root.GetProperty("code").GetInt32();
-                if (code != 0)
-                    throw GetCommonException(code, in root);
+                if (root.CheckApiRespCode(out int? code))
+                    throw GetCommonException(code!.Value, in root);
             }
             catch (JsonException) // 返回值非json就是执行失败, 把响应正文重新抛出
             {
@@ -753,7 +749,7 @@ namespace Mirai_CSharp
         /// <returns>表示此异步操作的 <see cref="Task"/></returns>
         public static Task<long[]> GetManagersAsync(HttpClient client, MiraiHttpSessionOptions options, long qqNumber, CancellationToken token = default)
         {
-            return client.GetAsync($"{options.BaseUrl}/managers?qq={qqNumber}", token).AsNoSuccCodeApiRespAsync<long[]>(token);
+            return client.GetAsync($"{options.BaseUrl}/managers?qq={qqNumber}", token).AsApiRespAsync<long[]>(token);
         }
 
         /// <inheritdoc cref="GetManagersAsync(HttpClient, MiraiHttpSessionOptions, long, CancellationToken)"/>
@@ -818,8 +814,7 @@ namespace Mirai_CSharp
 
             using JsonDocument j = await session.Client.PostAsJsonAsync($"{session.Options.BaseUrl}/{action}", payload, _forSendMsg).GetJsonAsync(token: session.Token);
             JsonElement root = j.RootElement;
-            int code = root.GetProperty("code").GetInt32();
-            return code == 0 ? root.GetProperty("messageId").GetInt32() : throw GetCommonException(code, in root);
+            return root.CheckApiRespCode(out int? code) ? root.GetProperty("messageId").GetInt32() : throw GetCommonException(code!.Value, in root);
         }
 
         /// <summary>
@@ -992,7 +987,7 @@ namespace Mirai_CSharp
             };
 
             return session.Client.PostAsJsonAsync($"{session.Options.BaseUrl}/sendImageMessage", payload, JsonSerializeOptionsFactory.IgnoreNulls, session.Token)
-                .AsNoSuccCodeApiRespAsync<string[]>();
+                .AsApiRespAsync<string[]>();
         }
 
         /// <summary>
@@ -1030,17 +1025,41 @@ namespace Mirai_CSharp
         /// <param name="session"></param>
         /// <param name="type">目标类型</param>
         /// <param name="imgStream">图片流</param>
+        /// <param name="disposeStream"></param>
         /// <remarks>
-        /// 注意: 当 mirai-api-http 的版本小于等于v1.7.0时, 本方法返回的将是一个只有 Url 有值的 <see cref="ImageMessage"/>
+        /// 当 mirai-api-http 的版本小于等于v1.7.0时, 本方法返回的将是一个只有 Url 有值的 <see cref="ImageMessage"/>
+        /// <para/>
+        /// <paramref name="imgStream"/> 会被读取至末尾
         /// </remarks>
         /// <returns>一个 <see cref="ImageMessage"/> 实例, 可用于以后的消息发送</returns>
-        private static Task<ImageMessage> InternalUploadPictureAsync(InternalSessionInfo session, UploadTarget type, Stream imgStream)
+        private static async Task<ImageMessage> InternalUploadPictureAsync(InternalSessionInfo session, UploadTarget type, Stream imgStream, bool disposeStream)
         {
             if (session.ApiVersion <= new Version(1, 7, 0))
             {
                 Guid guid = Guid.NewGuid();
-                ImageHttpListener.RegisterImage(guid, imgStream);
-                return Task.FromResult(new ImageMessage(null, $"http://127.0.0.1:{ImageHttpListener.Port}/fetch?guid={guid:n}", null));
+                MemoryStream ms = new MemoryStream(8192); // 无论如何都做一份copy
+                await imgStream.CopyToAsync(ms);
+
+                ImageHttpListener.RegisterImage(guid, ms);
+                return new ImageMessage(null, $"http://127.0.0.1:{ImageHttpListener.Port}/fetch?guid={guid:n}", null);
+            }
+
+            Stream? internalStream = null;
+            bool internalCreated = false;
+            long previous = 0;
+
+            // 对于 CanTimeOut 的 imgStream, 或者无法Seek的, 一律假定其读取行为是阻塞的
+            // 为其创建一个内部缓存先行异步读取
+            if (!imgStream.CanSeek || imgStream.CanTimeout) 
+            {
+                internalStream = new MemoryStream(8192);
+                internalCreated = true;
+                await imgStream.CopyToAsync(internalStream);
+            }
+            else // 否则不创建副本, 避免多余的堆分配
+            {
+                internalStream = imgStream;
+                previous = imgStream.Position;
             }
 
             HttpContent sessionKeyContent = new StringContent(session.SessionKey);
@@ -1056,33 +1075,50 @@ namespace Mirai_CSharp
             };
 
             string format;
-            using (Image img = Image.FromStream(imgStream))
+            using SKManagedStream skstream = new SKManagedStream(internalStream, false);
+
+            // 已经把数据读到非托管内存里边了, 就不用管input的死活了
+            using (SKCodec codec = SKCodec.Create(skstream))
             {
-                format = img.RawFormat.ToString();
-                switch (format)
+                var skformat = codec.EncodedFormat;
+                format = skformat.ToString().ToLower();
+                switch (skformat)
                 {
-                    case nameof(ImageFormat.Jpeg):
-                    case nameof(ImageFormat.Png):
-                    case nameof(ImageFormat.Gif):
+                    case SKEncodedImageFormat.Gif:
+                    case SKEncodedImageFormat.Jpeg:
+                    case SKEncodedImageFormat.Png:
+                        break;
+                    // 不是以上三种类型的图片就强转为Png
+                    default:
                         {
-                            format = format.ToLower();
-                            break;
-                        }
-                    default: // 不是以上三种类型的图片就强转为Png
-                        {
-                            MemoryStream ms = new MemoryStream();
-                            img.Save(ms, ImageFormat.Png);
-                            imgStream.Dispose();
-                            imgStream = ms;
+                            skstream.Seek(0);
+                            using (SKBitmap bitmap = SKBitmap.Decode(skstream))
+                            {
+                                if (!internalCreated)
+                                {
+                                    internalStream = new MemoryStream(8192);
+                                    internalCreated = true;
+                                }
+                                else
+                                {
+                                    internalStream.Seek(0, SeekOrigin.Begin);
+                                }
+
+                                bitmap.Encode(internalStream, SKEncodedImageFormat.Png, 100);
+                            }
+
                             format = "png";
                             break;
                         }
                 }
             }
 
-            imgStream.Seek(0, SeekOrigin.Begin);
+            if (internalCreated)
+                internalStream.Seek(0, SeekOrigin.Begin);
+            else
+                internalStream.Seek(previous - internalStream.Position, SeekOrigin.Current);
 
-            HttpContent imageContent = new StreamContent(imgStream);
+            HttpContent imageContent = new StreamContent(internalStream);
             imageContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
             {
                 Name = "img",
@@ -1097,10 +1133,21 @@ namespace Mirai_CSharp
                 imageContent
             };
 
-            return session.Client.PostAsync($"{session.Options.BaseUrl}/uploadImage", contents, session.Token)
-                .AsNoSuccCodeApiRespAsync<ImageMessage>(session.Token)
-                .ContinueWith(t => t.IsFaulted && t.Exception!.InnerException is JsonException ? throw new NotSupportedException("当前版本的mirai-api-http无法发送图片。") : t, TaskContinuationOptions.ExecuteSynchronously).Unwrap();
-            //  ^-- 处理 JsonException 到 NotSupportedException, https://github.com/mamoe/mirai-api-http/issues/85
+            try
+            {
+                return await session.Client.PostAsync($"{session.Options.BaseUrl}/uploadImage", contents, session.Token)
+                    .AsApiRespAsync<ImageMessage>(session.Token)
+                    .ContinueWith(t => t.IsFaulted && t.Exception!.InnerException is JsonException ? throw new NotSupportedException("当前版本的mirai-api-http无法发送图片。") : t, TaskContinuationOptions.ExecuteSynchronously).Unwrap();
+                //  ^-- 处理 JsonException 到 NotSupportedException, https://github.com/mamoe/mirai-api-http/issues/85
+                // internalStream 是 MemoryStream, 内部为全托管字段不需要 Dispose
+            }
+            finally
+            {
+                if (disposeStream)
+                {
+                    imgStream.Dispose();
+                }
+            }
         }
 
         /// <summary>
@@ -1114,7 +1161,7 @@ namespace Mirai_CSharp
         public Task<ImageMessage> UploadPictureAsync(UploadTarget type, string imagePath)
         {
             InternalSessionInfo session = SafeGetSession();
-            return InternalUploadPictureAsync(session, type, new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return InternalUploadPictureAsync(session, type, new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read), true);
         }
 
         /// <summary>
@@ -1124,10 +1171,13 @@ namespace Mirai_CSharp
         /// <param name="type">类型</param>
         /// <param name="image">图片流</param>
         /// <inheritdoc cref="InternalUploadPictureAsync"/>
+        /// <remarks>
+        /// <paramref name="image"/> 会被读取至末尾
+        /// </remarks>
         public Task<ImageMessage> UploadPictureAsync(UploadTarget type, Stream image)
         {
             InternalSessionInfo session = SafeGetSession();
-            return InternalUploadPictureAsync(session, type, image);
+            return InternalUploadPictureAsync(session, type, image, false);
         }
 
         /// <summary>
@@ -1142,7 +1192,7 @@ namespace Mirai_CSharp
         public Task<ImageMessage> UploadPictureAsync(PictureTarget type, string imagePath)
         {
             InternalSessionInfo session = SafeGetSession();
-            return InternalUploadPictureAsync(session, (UploadTarget)(int)type, new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return InternalUploadPictureAsync(session, (UploadTarget)(int)type, new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read), true);
         }
 
         /// <summary>
@@ -1152,11 +1202,14 @@ namespace Mirai_CSharp
         /// <param name="type">类型</param>
         /// <param name="image">图片流</param>
         /// <inheritdoc cref="InternalUploadPictureAsync"/>
+        /// <remarks>
+        /// <paramref name="image"/> 会被读取至末尾
+        /// </remarks>
         [Obsolete("请调用 UploadPictureAsync(UploadTarget, Stream)")]
         public Task<ImageMessage> UploadPictureAsync(PictureTarget type, Stream image)
         {
             InternalSessionInfo session = SafeGetSession();
-            return InternalUploadPictureAsync(session, (UploadTarget)(int)type, image);
+            return InternalUploadPictureAsync(session, (UploadTarget)(int)type, image, false);
         }
 
         #endregion
@@ -1203,7 +1256,7 @@ namespace Mirai_CSharp
             };
 
             return session.Client.PostAsync($"{session.Options.BaseUrl}/uploadVoice", contents, session.Token)
-                .AsNoSuccCodeApiRespAsync<VoiceMessage>(session.Token);
+                .AsApiRespAsync<VoiceMessage>(session.Token);
         }
 
         /// <summary>
@@ -1298,7 +1351,7 @@ namespace Mirai_CSharp
         /// <summary>
         /// 与mirai-api-http的ws连接被异常断开
         /// </summary>
-        public event CommonEventHandler<Exception>? DisconnectedEvt;
+        public event CommonEventHandler<IDisconnectedEventArgs>? DisconnectedEvt;
         /// <summary>
         /// 收到未知消息。如有需要, 请自行解析
         /// </summary>
@@ -1686,7 +1739,7 @@ namespace Mirai_CSharp
                 if (Interlocked.CompareExchange(ref SessionInfo, null, session) != null)
                 {
                     _ = InternalReleaseAsync(session, CancellationToken.None); // 不异步等待, 省的抛错没地捕获
-                    try { DisconnectedEvt?.Invoke(this, e); } catch { } // 扔掉所有异常
+                    _ = InvokeAsync(Plugins, DisconnectedEvt, this, new DisconnectedEventArgs(e));
                 }
             }
         }
@@ -1715,7 +1768,7 @@ namespace Mirai_CSharp
                 if (Interlocked.CompareExchange(ref SessionInfo, null, session) != null)
                 {
                     _ = InternalReleaseAsync(session, CancellationToken.None); // 不异步等待, 省的抛错没地捕获
-                    try { DisconnectedEvt?.Invoke(this, e); } catch { } // 扔掉所有异常
+                    _ = InvokeAsync(Plugins, DisconnectedEvt, this, new DisconnectedEventArgs(e));
                 }
             }
         }

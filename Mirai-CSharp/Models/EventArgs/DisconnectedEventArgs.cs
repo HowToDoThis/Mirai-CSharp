@@ -20,7 +20,6 @@ namespace Mirai_CSharp.Models
         [Obsolete("此类不应由用户主动创建实例。")]
         public DisconnectedEventArgs() { }
 
-        [Obsolete("此类不应由用户主动创建实例。")]
         public DisconnectedEventArgs(Exception exception)
         {
             Exception = exception;
