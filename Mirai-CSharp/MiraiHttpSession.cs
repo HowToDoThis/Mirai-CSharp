@@ -22,7 +22,10 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
 using SkiaSharp;
+
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 
 namespace Mirai_CSharp
 {
@@ -118,6 +121,30 @@ namespace Mirai_CSharp
             }
 
             return default;
+        }
+
+        public async Task<ICommonMessageEventArgs> GetMessageByMessageID(long msgID)
+        {
+            InternalSessionInfo session = SafeGetSession();
+            using JsonDocument jd = await session.Client.GetAsync($"{session.Options.BaseUrl}/messageFromId?sessionKey={session.SessionKey}&id={msgID}").GetJsonAsync();
+            JsonElement root = jd.RootElement;
+
+            if (root.CheckApiRespCode(out int? code))
+            {
+                // check friend, group, temp, or events?
+                var data = root.GetProperty("data");
+                string type = data.GetProperty("type").GetString();
+
+                return type switch
+                {
+                    "FriendMessage" => data.Deserialize<FriendMessageEventArgs>(),
+                    "GroupMessage" => data.Deserialize<GroupMessageEventArgs>(),
+                    "TempMessage" => data.Deserialize<TempMessageEventArgs>(),
+                    _ => throw new NotSupportedException($"Type: {type} is not supported yet!"),
+                };
+            }
+
+            throw GetCommonException(code!.Value, in root);
         }
 
         #region API Function
