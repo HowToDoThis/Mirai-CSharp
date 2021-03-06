@@ -147,6 +147,12 @@ namespace Mirai_CSharp
             throw GetCommonException(code!.Value, in root);
         }
 
+        public string GetCurrentSessionKey()
+        {
+            var info = SafeGetSession();
+            return info.SessionKey;
+        }
+
         #region API Function
 
         /// <summary>
